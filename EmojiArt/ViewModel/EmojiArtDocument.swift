@@ -6,25 +6,30 @@
 //  Copyright © 2020 Yahia Ewida. All rights reserved.
 //
 import SwiftUI
-
+import Combine
 //ViewModel
 
 class EmojiArtDocument : ObservableObject {
+    private var autosaveCancellable : AnyCancellable?
     static let palette : String = "⭐️🍔⚽️🕶😀😂"
     private static let documentUserDefaultsKey = "EmojiArtDocument.Untitled"
-    private var emojiArt: EmojiArt = EmojiArt() {
-        willSet {
-            objectWillChange.send()
-        }
-        didSet {
-            UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.documentUserDefaultsKey )
-        }
-    }
+//    private var emojiArt: EmojiArt = EmojiArt() {
+//        willSet {
+//            objectWillChange.send()
+//        }
+//        didSet {
+//            UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.documentUserDefaultsKey )
+//        }
+//    }
+    @Published private var emojiArt: EmojiArt
     @Published private(set) var backgroundImage: UIImage?
     var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
     
     init() {
         emojiArt = EmojiArt(json: UserDefaults.standard.data(forKey: EmojiArtDocument.documentUserDefaultsKey)) ?? EmojiArt()
+        autosaveCancellable = $emojiArt.sink { emojiArt in
+            UserDefaults.standard.set(emojiArt.json, forKey: EmojiArtDocument.documentUserDefaultsKey )
+        }
         fetchBackgroundImageData()
     }
     
@@ -45,9 +50,15 @@ class EmojiArtDocument : ObservableObject {
         }
     }
     
-    func setBackgroundURL(_ url: URL?) {
-        emojiArt.backgroundURL = url?.imageURL
-        fetchBackgroundImageData()
+    var backgroundURL: URL? {
+        get {
+            emojiArt.backgroundURL
+        }
+        set {
+            emojiArt.backgroundURL = newValue?.imageURL
+            fetchBackgroundImageData()
+        }
+        
     }
     
     private func fetchBackgroundImageData() {
