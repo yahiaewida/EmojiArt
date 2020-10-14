@@ -14,6 +14,8 @@ class EmojiArtDocument : ObservableObject {
     
     @Published private var emojiArt = EmojiArt()
     
+    private(set) var backgroundImage: UIImage?
+    
     func addEmoji(_ emoji: String, at location: CGPoint, size: CGFloat) {
         emojiArt.addEmoji(emoji, x: Int(location.x), y: Int(location.y), size: Int(size))
     }
